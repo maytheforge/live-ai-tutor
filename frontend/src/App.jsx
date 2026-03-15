@@ -8,6 +8,7 @@ import { Video, Mic, Share2, Sparkles, MicOff } from 'lucide-react';
 import './App.css';
 
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || '';
 
 function App() {
     const webcamRef = useRef(null);
@@ -46,7 +47,7 @@ function App() {
                 clearToolCall();
 
                 try {
-                    const backendUrl = `http://${window.location.hostname}:8000/interact`;
+                    const backendUrl = `${BACKEND_URL}/interact`;
                     const response = await axios.post(backendUrl, {
                         student_id: "demo_student",
                         message: `The user wants a diagram about: ${topic}`,
@@ -99,7 +100,7 @@ function App() {
             }
 
             // Call our FastAPI backend using the dynamic hostname so it works over LAN
-            const backendUrl = `http://${window.location.hostname}:8000/interact`;
+            const backendUrl = `${BACKEND_URL}/interact`;
             const response = await axios.post(backendUrl, {
                 student_id: "demo_student",
                 message: "Can you help me with this problem?",

@@ -1,0 +1,16 @@
+.git
+.gitignore
+.gcloudignore
+.env
+.env.local
+.env.*.local
+backend/.env
+frontend/.env.local
+backend/venv/
+frontend/node_modules/
+__pycache__/
+*.pyc
+.DS_Store
+*.zip
+.vscode/
+.idea/

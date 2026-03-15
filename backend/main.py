@@ -1,7 +1,10 @@
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import Dict, Any, List, Optional
 
@@ -46,10 +49,11 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Live Homework Tutor API", lifespan=lifespan)
 
-# Add CORS Middleware to allow requests from the React frontend
+# CORS: use ALLOWED_ORIGINS env var in production, fallback to permissive for local dev
+allowed_origins = os.getenv("ALLOWED_ORIGINS", "*").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # In production, restrict this to your frontend domain
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -63,8 +67,8 @@ class InteractionRequest(BaseModel):
     grade_level: Optional[str] = "3-5"
     request_diagram: Optional[str] = None # e.g. "number_line"
 
-@app.get("/")
-def read_root():
+@app.get("/health")
+def health_check():
     return {"status": "online", "agents_loaded": True}
 
 @app.post("/interact")
@@ -109,6 +113,17 @@ def get_summary():
 def get_practice():
     summary = review_agent.generate_summary()
     return reinforcement_agent.generate_practice_problems(summary["concepts_covered"])
+
+# Serve the built React frontend in production (static/ directory created by Docker build)
+STATIC_DIR = Path(__file__).parent / "static"
+if STATIC_DIR.is_dir():
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        """Serve frontend static files; fall back to index.html for SPA routing."""
+        file_path = STATIC_DIR / full_path
+        if file_path.is_file():
+            return FileResponse(file_path)
+        return FileResponse(STATIC_DIR / "index.html")
 
 if __name__ == "__main__":
     import uvicorn
