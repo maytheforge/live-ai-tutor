@@ -138,6 +138,17 @@ body {
   font-weight: 600;
 }
 
+.control-btn.upload-btn {
+  background-color: #2ecc71;
+  border-color: #27ae60;
+  color: #fff;
+  font-weight: 600;
+}
+
+.control-btn.upload-btn:hover {
+  background-color: #27ae60;
+}
+
 .tutor-chat {
   flex: 1;
   padding: 20px;

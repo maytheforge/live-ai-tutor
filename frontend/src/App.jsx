@@ -4,18 +4,20 @@ import Webcam from 'react-webcam';
 import axios from 'axios';
 import { CanvasBoard } from './components/CanvasBoard';
 import { useGeminiLive } from './hooks/useGeminiLive';
-import { Video, Mic, Share2, Sparkles, MicOff } from 'lucide-react';
+import { Video, Mic, Share2, Sparkles, Upload } from 'lucide-react';
 import './App.css';
 
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
 function App() {
     const webcamRef = useRef(null);
+    const uploadInputRef = useRef(null);
     const { isConnected, connect, disconnect, sendContext, sendToolResponse, toolCall, clearToolCall } = useGeminiLive(GEMINI_API_KEY);
 
-    const [tutorMessage, setTutorMessage] = useState("Hi! Show me your homework on the camera.");
+    const [tutorMessage, setTutorMessage] = useState("Hi! Show me your homework on the camera or upload a photo.");
     const [externalCanvasActions, setExternalCanvasActions] = useState(null);
     const [lastSnapshot, setLastSnapshot] = useState(null);
+    const [uploadedImage, setUploadedImage] = useState(null); // tracks the uploaded file preview
 
     // Handle tool calls coming from the Gemini Live audio agent
     useEffect(() => {
@@ -121,6 +123,50 @@ function App() {
         }
     }, [webcamRef, isLive, sendContext]);
 
+    // Handle file upload as an alternative to webcam snapshot
+    const handleFileUpload = useCallback(async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Reset input so same file can be re-selected
+        e.target.value = '';
+
+        const reader = new FileReader();
+        reader.onload = async (loadEvent) => {
+            const dataUrl = loadEvent.target.result; // e.g. "data:image/jpeg;base64,..."
+            const base64Image = dataUrl.split(',')[1];
+
+            setUploadedImage(dataUrl);
+            setLastSnapshot(null); // clear webcam snapshot when a file is uploaded
+            setTutorMessage('Looking at your uploaded homework...');
+
+            // Send image to the active Gemini Live voice session
+            if (isLive) {
+                sendContext(base64Image);
+            }
+
+            try {
+                const backendUrl = `http://${window.location.hostname}:8000/interact`;
+                const response = await axios.post(backendUrl, {
+                    student_id: 'demo_student',
+                    message: 'Can you help me with this problem?',
+                    image_data: base64Image,
+                });
+
+                if (response.data.tutor_response) {
+                    setTutorMessage(response.data.tutor_response);
+                }
+                if (response.data.canvas_action) {
+                    setExternalCanvasActions(response.data.canvas_action);
+                }
+            } catch (error) {
+                console.error('Error sending uploaded image to tutor:', error);
+                setTutorMessage("Oops, I had trouble reading that file. Please try another image.");
+            }
+        };
+        reader.readAsDataURL(file);
+    }, [isLive, sendContext]);
+
     return (
         <div className="app-container">
             {/* Header */}
@@ -151,12 +197,28 @@ function App() {
                             <button
                                 className={`control-btn ${isLive ? 'active-red' : ''}`}
                                 onClick={toggleVoice}
+                                title={isLive ? 'Stop voice session' : 'Start voice session'}
                             >
                                 <Mic size={20} />
                             </button>
-                            <button className="control-btn primary" onClick={captureAndUnderstand}>
+                            <button className="control-btn primary" onClick={captureAndUnderstand} title="Take a snapshot">
                                 <Video size={20} /> Snapshot
                             </button>
+                            <button
+                                className="control-btn upload-btn"
+                                onClick={() => uploadInputRef.current?.click()}
+                                title="Upload a homework photo"
+                            >
+                                <Upload size={20} /> Upload
+                            </button>
+                            {/* Hidden file input — triggered by Upload button */}
+                            <input
+                                ref={uploadInputRef}
+                                type="file"
+                                accept="image/*"
+                                style={{ display: 'none' }}
+                                onChange={handleFileUpload}
+                            />
                         </div>
                     </div>
 
@@ -165,10 +227,15 @@ function App() {
                         <div className="message-bubble">
                             <p>{tutorMessage}</p>
                         </div>
-                        {lastSnapshot && (
+                        {/* Show either uploaded file OR webcam snapshot as context preview */}
+                        {(uploadedImage || lastSnapshot) && (
                             <div className="snapshot-context">
-                                <h4>Context Shared with Tutor:</h4>
-                                <img src={lastSnapshot} alt="Homework Snapshot" className="snapshot-thumbnail" />
+                                <h4>{uploadedImage ? 'Uploaded Homework:' : 'Context Shared with Tutor:'}</h4>
+                                <img
+                                    src={uploadedImage || lastSnapshot}
+                                    alt="Homework Context"
+                                    className="snapshot-thumbnail"
+                                />
                             </div>
                         )}
                     </div>
