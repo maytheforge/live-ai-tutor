@@ -32,6 +32,10 @@ service-account-key.json
 .DS_Store
 Thumbs.db
 
+# Archives (too large for GitHub)
+*.zip
+*.tar.gz
+
 # IDE
 .vscode/
 .idea/
