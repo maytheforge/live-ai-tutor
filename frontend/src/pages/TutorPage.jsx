@@ -63,7 +63,7 @@ export default function TutorPage() {
                     const response = await axios.post(backendUrl, {
                         student_id: 'demo_student',
                         message: `The user wants a diagram about: ${topicLabel}`,
-                        request_diagram: diagram_type,
+                        request_diagram: topicLabel,  // human-readable topic (e.g. 'Water Cycle')
                     });
                     if (response.data.mermaid_diagram) {
                         setMermaidDiagram(response.data.mermaid_diagram);

@@ -55,7 +55,7 @@ def generate_mermaid_diagram(topic: str, diagram_type: str = "flowchart") -> dic
     try:
         client = _get_client()
         response = client.models.generate_content(
-            model="gemini-1.5-flash",
+            model="gemini-2.0-flash-lite",
             contents=user_prompt,
             config=types.GenerateContentConfig(
                 system_instruction=MERMAID_SYSTEM,
