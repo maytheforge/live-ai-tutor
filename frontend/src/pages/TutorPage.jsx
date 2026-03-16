@@ -68,7 +68,7 @@ export default function TutorPage() {
                     if (response.data.mermaid_diagram) {
                         setMermaidDiagram(response.data.mermaid_diagram);
                         setActiveTab('diagram');
-                    } else if (response.data.canvas_action) {
+                    } else if (response.data.canvas_action && response.data.canvas_action.action !== 'noop') {
                         setExternalCanvasActions(response.data.canvas_action);
                         setActiveTab('whiteboard');
                     }
