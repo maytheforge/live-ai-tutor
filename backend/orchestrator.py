@@ -40,7 +40,7 @@ class ADKOrchestrator:
         # Create Diagram Sub-Agent — uses the model to produce Mermaid DSL
         diagram_agent = Agent(
             name="diagram_agent",
-            model="gemini-1.5-flash-latest",
+            model="gemini-flash-latest",
             tools=[display_mermaid_diagram],
             instruction=(
                 "You are the Diagram Agent. Your goal is to create a visual Mermaid DSL diagram to help the student. "
@@ -57,7 +57,7 @@ class ADKOrchestrator:
         # Initialize Top-Level Google ADK Orchestrator Agent
         self.root_agent = Agent(
             name="hw_tutor_orchestrator",
-            model="gemini-1.5-flash-latest",
+            model="gemini-flash-latest",
             sub_agents=[canvas_agent, diagram_agent],
             instruction=SYSTEM_PROMPT
         )
