@@ -76,7 +76,7 @@ class DiagramAgent:
             
         try:
             response = self.client.models.generate_content(
-                model="gemini-2.5-flash",
+                model="gemini-flash-latest",
                 contents=system_prompt,
                 config=types.GenerateContentConfig(
                     response_mime_type="application/json"
