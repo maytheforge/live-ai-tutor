@@ -45,6 +45,26 @@ body {
   margin: 0;
 }
 
+.back-btn {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ccc;
+  border-radius: 8px;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  flex-shrink: 0;
+}
+
+.back-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
 .icon-gold {
   color: var(--accent-gold);
 }
@@ -136,6 +156,17 @@ body {
   background-color: var(--primary);
   border-color: var(--primary);
   font-weight: 600;
+}
+
+.control-btn.upload-btn {
+  background-color: #2ecc71;
+  border-color: #27ae60;
+  color: #fff;
+  font-weight: 600;
+}
+
+.control-btn.upload-btn:hover {
+  background-color: #27ae60;
 }
 
 .tutor-chat {

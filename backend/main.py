@@ -78,22 +78,30 @@ async def interact(request: InteractionRequest):
     """
     response = {}
     
-    # 1. Vision Processing (legacy extraction)
-    context = "General homework help"
+    # 1. Vision Processing — analyze the real image with Gemini
+    context = None
     if request.image_data:
         vision_result = vision_agent.extract_problem_context(request.image_data)
-        context = f"Detected Problem: {vision_result['text']}"
+        context = vision_result['text']
         response["vision_context"] = vision_result
+        response["vision_topic"] = vision_result.get("topic", "Homework problem")
 
     # 2. ADK Orchestrator
-    # Pass student intent & image context to the Vertex AI Reasoning Engine
     msg = request.message
     if not msg and request.request_diagram:
         msg = f"Please draw a {request.request_diagram} for me."
 
+    # Enrich the message with vision context so the orchestrator knows what it's looking at
+    if context and msg:
+        orchestrator_message = f"{msg}\n\n[Image context: {context}]"
+    elif context:
+        orchestrator_message = f"I can see: {context}. Can you help me understand this?"
+    else:
+        orchestrator_message = msg or "Help me!"
+
     adk_result = await adk_orchestrator.process_interaction(
-        user_message=msg or "Help me!",
-        image_context=context if request.image_data else None
+        user_message=orchestrator_message,
+        image_context=context
     )
     
     response["tutor_response"] = adk_result.get("tutor_response", "I'm thinking about that...")
