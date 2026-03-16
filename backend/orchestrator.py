@@ -6,7 +6,7 @@ from google.adk.runners import InMemoryRunner
 from google.genai import types
 
 from tools.canvas_tools import add_text_to_board, clear_board, highlight_area
-from tools.diagram_tools import draw_science_flow, draw_math_equation_steps, draw_math_number_line
+from tools.mermaid_tools import generate_mermaid_diagram
 
 SYSTEM_PROMPT = """You are Coach Leo, a Socratic educational tutor — a "Socratic Mirror".
 Your core philosophy: You NEVER directly solve problems or reveal answers. You guide students through the cognitive process of discovery using questions.
@@ -39,12 +39,20 @@ class ADKOrchestrator:
             instruction="You are the Canvas Agent. Your job is to draw visual aids that HELP the student think — not reveal answers. Draw diagrams that prompt discovery, like a number line without the answer marked, or steps shown one-by-one with blanks for the student to fill in."
         )
 
-        # Create Diagram Sub-Agent
+        # Create Diagram Sub-Agent — uses Mermaid DSL for clean, reliable diagram generation
         diagram_agent = Agent(
             name="diagram_agent",
             model="gemini-2.5-flash",
-            tools=[draw_science_flow, draw_math_equation_steps, draw_math_number_line],
-            instruction="You are the Diagram Agent. Your job is to construct educational diagrams that help students discover concepts. Draw process steps, number lines, or equation steps that show intermediate stages — not the final answer — so students can reason through them."
+            tools=[generate_mermaid_diagram],
+            instruction=(
+                "You are the Diagram Agent. When asked to draw a diagram, call generate_mermaid_diagram "
+                "with the topic and the most suitable diagram_type: "
+                "'flowchart' for processes/cycles (default), "
+                "'sequence' for step-by-step interactions, "
+                "'mindmap' for concept maps, "
+                "'stateDiagram' for state/logic flows. "
+                "Always use the diagram as a discovery aid — show the structure of a concept, not its answer."
+            )
         )
 
         # Initialize Top-Level Google ADK Orchestrator Agent
@@ -91,6 +99,7 @@ class ADKOrchestrator:
 
             final_text = ""
             canvas_action = {"action": "noop"}
+            mermaid_diagram = None
 
             # Collect all events from the ADK runner
             async for event in self.runner.run_async(
@@ -112,12 +121,18 @@ class ADKOrchestrator:
                     and event.content.parts[0].function_response
                 ):
                     tool_result = event.content.parts[0].function_response.response
-                    if isinstance(tool_result, dict) and "action" in tool_result:
-                        canvas_action = tool_result
+                    if isinstance(tool_result, dict):
+                        if "mermaid" in tool_result:
+                            # New Mermaid diagram tool result
+                            mermaid_diagram = tool_result
+                        elif "action" in tool_result:
+                            # Legacy canvas tool result
+                            canvas_action = tool_result
 
             return {
                 "tutor_response": final_text or "Let me think about that...",
                 "canvas_action": canvas_action,
+                "mermaid_diagram": mermaid_diagram,
                 "dynamic_adk": True
             }
 

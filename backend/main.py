@@ -106,6 +106,7 @@ async def interact(request: InteractionRequest):
     
     response["tutor_response"] = adk_result.get("tutor_response", "I'm thinking about that...")
     response["canvas_action"] = adk_result.get("canvas_action", {"action": "noop"})
+    response["mermaid_diagram"] = adk_result.get("mermaid_diagram")  # None if no diagram generated
     
     # 3. Logic to record for review later
     review_agent.record_interaction(response["tutor_response"], request.message or "")

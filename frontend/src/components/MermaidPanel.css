@@ -1,0 +1,88 @@
+/* MermaidPanel.css */
+
+.mermaid-panel {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: #ffffff;
+    overflow: auto;
+    padding: 20px 24px;
+    box-sizing: border-box;
+}
+
+.mermaid-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 16px;
+    text-align: center;
+    letter-spacing: 0.3px;
+}
+
+.mermaid-svg-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: auto;
+}
+
+.mermaid-svg-container svg {
+    max-width: 100%;
+    height: auto;
+}
+
+.mermaid-loading {
+    text-align: center;
+    color: #888;
+    font-size: 0.9rem;
+    padding: 20px;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.4; }
+}
+
+.mermaid-error {
+    background: #fff3f3;
+    border: 1px solid #ffcccc;
+    border-radius: 8px;
+    padding: 12px 16px;
+    color: #c0392b;
+    font-size: 0.88rem;
+    margin-bottom: 12px;
+}
+
+/* Placeholder state */
+.mermaid-placeholder {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 40px;
+    color: #aaa;
+    text-align: center;
+    background: #fafafa;
+}
+
+.placeholder-icon {
+    font-size: 3rem;
+    opacity: 0.5;
+}
+
+.mermaid-placeholder p {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #999;
+    max-width: 320px;
+    line-height: 1.5;
+}
+
+.placeholder-hint {
+    font-size: 0.85rem !important;
+    color: #bbb !important;
+}

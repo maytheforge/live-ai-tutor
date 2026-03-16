@@ -4,8 +4,9 @@ import Webcam from 'react-webcam';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { CanvasBoard } from '../components/CanvasBoard';
+import MermaidPanel from '../components/MermaidPanel';
 import { useGeminiLive } from '../hooks/useGeminiLive';
-import { Video, Mic, Share2, Sparkles, Upload, ArrowLeft } from 'lucide-react';
+import { Video, Mic, Sparkles, Upload, ArrowLeft, BarChart2, PenTool } from 'lucide-react';
 import '../App.css';
 
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
@@ -21,11 +22,13 @@ export default function TutorPage() {
     const [lastSnapshot, setLastSnapshot] = useState(null);
     const [uploadedImage, setUploadedImage] = useState(null);
 
+    // Mermaid diagram state
+    const [mermaidDiagram, setMermaidDiagram] = useState(null); // { mermaid, title }
+    const [activeTab, setActiveTab] = useState('diagram'); // 'diagram' | 'whiteboard'
+
     // Auto-start the voice session when this page mounts
     useEffect(() => {
-        const timer = setTimeout(() => {
-            connect();
-        }, 800); // slight delay so webcam can initialize
+        const timer = setTimeout(() => { connect(); }, 800);
         return () => clearTimeout(timer);
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -42,23 +45,16 @@ export default function TutorPage() {
 
         const executeTool = async () => {
             if (toolCall.name === 'generate_diagram') {
-                const args = toolCall.args;
-                const diagramType = args.diagram_type;
-                const topic = args.topic || args.diagram_type;
+                const { diagram_type, topic } = toolCall.args;
+                const topicLabel = topic || diagram_type;
 
-                console.log('Gemini asked to draw diagram:', diagramType, 'about:', topic);
-                setTutorMessage(`Drawing a diagram about ${topic}...`);
+                setTutorMessage(`Drawing a diagram about ${topicLabel}...`);
 
-                // Respond to Gemini IMMEDIATELY to avoid 1008 disconnect
+                // Respond immediately to avoid 1008 disconnect
                 sendToolResponse({
                     name: 'generate_diagram',
                     id: toolCall.id,
-                    response: {
-                        result: {
-                            status: 'success',
-                            message: 'Diagram generation started. Remind the user it might take a few seconds to appear.',
-                        },
-                    },
+                    response: { result: { status: 'success', message: 'Diagram generation started.' } },
                 });
                 clearToolCall();
 
@@ -66,11 +62,15 @@ export default function TutorPage() {
                     const backendUrl = `http://${window.location.hostname}:8000/interact`;
                     const response = await axios.post(backendUrl, {
                         student_id: 'demo_student',
-                        message: `The user wants a diagram about: ${topic}`,
-                        request_diagram: diagramType,
+                        message: `The user wants a diagram about: ${topicLabel}`,
+                        request_diagram: diagram_type,
                     });
-                    if (response.data.canvas_action) {
+                    if (response.data.mermaid_diagram) {
+                        setMermaidDiagram(response.data.mermaid_diagram);
+                        setActiveTab('diagram');
+                    } else if (response.data.canvas_action) {
                         setExternalCanvasActions(response.data.canvas_action);
+                        setActiveTab('whiteboard');
                     }
                 } catch (error) {
                     console.error('Error executing diagram tool:', error);
@@ -85,11 +85,21 @@ export default function TutorPage() {
 
     const isLive = isConnected;
 
-    const toggleVoice = () => {
-        if (isLive) {
-            disconnect();
-        } else {
-            connect();
+    const toggleVoice = () => { isLive ? disconnect() : connect(); };
+
+    // Helper: apply API response to state
+    const applyResponse = (data) => {
+        if (data.vision_topic) {
+            setTutorMessage(`I can see: "${data.vision_topic}". ${data.tutor_response || ''}`.trim());
+        } else if (data.tutor_response) {
+            setTutorMessage(data.tutor_response);
+        }
+        if (data.mermaid_diagram) {
+            setMermaidDiagram(data.mermaid_diagram);
+            setActiveTab('diagram');
+        } else if (data.canvas_action && data.canvas_action.action !== 'noop') {
+            setExternalCanvasActions(data.canvas_action);
+            setActiveTab('whiteboard');
         }
     };
 
@@ -113,14 +123,7 @@ export default function TutorPage() {
                 message: 'Can you help me with this problem?',
                 image_data: base64Image,
             });
-
-            // Show the detected topic first, then the Socratic response
-            if (response.data.vision_topic) {
-                setTutorMessage(`I can see: "${response.data.vision_topic}". ${response.data.tutor_response || ''}`.trim());
-            } else if (response.data.tutor_response) {
-                setTutorMessage(response.data.tutor_response);
-            }
-            if (response.data.canvas_action) setExternalCanvasActions(response.data.canvas_action);
+            applyResponse(response.data);
         } catch (error) {
             console.error('Error interacting with tutor:', error);
             setTutorMessage("Oops, I had trouble seeing that. Can you adjust the paper?");
@@ -151,13 +154,7 @@ export default function TutorPage() {
                     message: 'Can you help me with this problem?',
                     image_data: base64Image,
                 });
-                // Show the detected topic alongside the Socratic response
-                if (response.data.vision_topic) {
-                    setTutorMessage(`I can see: "${response.data.vision_topic}". ${response.data.tutor_response || ''}`.trim());
-                } else if (response.data.tutor_response) {
-                    setTutorMessage(response.data.tutor_response);
-                }
-                if (response.data.canvas_action) setExternalCanvasActions(response.data.canvas_action);
+                applyResponse(response.data);
             } catch (error) {
                 console.error('Error sending uploaded image to tutor:', error);
                 setTutorMessage("Oops, I had trouble reading that file. Please try another image.");
@@ -241,14 +238,35 @@ export default function TutorPage() {
                     </div>
                 </aside>
 
-                {/* Right Panel: Shared Canvas */}
+                {/* Right Panel: Tabbed — Diagram | Whiteboard */}
                 <section className="right-panel">
-                    <div className="canvas-header">
-                        <h2>Shared Board</h2>
-                        <button className="icon-btn"><Share2 size={16} /> Share</button>
+                    {/* Tab bar */}
+                    <div className="panel-tabs">
+                        <button
+                            className={`tab-btn ${activeTab === 'diagram' ? 'tab-active' : ''}`}
+                            onClick={() => setActiveTab('diagram')}
+                        >
+                            <BarChart2 size={15} /> Diagram
+                            {mermaidDiagram && <span className="tab-badge" />}
+                        </button>
+                        <button
+                            className={`tab-btn ${activeTab === 'whiteboard' ? 'tab-active' : ''}`}
+                            onClick={() => setActiveTab('whiteboard')}
+                        >
+                            <PenTool size={15} /> Whiteboard
+                        </button>
                     </div>
+
+                    {/* Tab content */}
                     <div className="canvas-wrapper">
-                        <CanvasBoard externalActions={externalCanvasActions} />
+                        {activeTab === 'diagram' ? (
+                            <MermaidPanel
+                                mermaidCode={mermaidDiagram?.mermaid}
+                                title={mermaidDiagram?.title}
+                            />
+                        ) : (
+                            <CanvasBoard externalActions={externalCanvasActions} />
+                        )}
                     </div>
                 </section>
             </main>
