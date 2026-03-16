@@ -63,7 +63,7 @@ class DiagramAgent:
             print("Gemini client not available. Falling back to mock data.")
             return self._fallback_mock_data(diagram_type)
             
-        system_prompt = f"You are an educational diagram designer API. The user has requested a diagram of type {diagram_type.name} to explain the following concept: '{context}'. "
+        system_prompt = f"You are an expert educational content creator, visual architect and diagram designer API. Create a detailed Excalidraw JSON schema to visually explain the concept of type {diagram_type.name} to explain the following concept: '{context}'. "
         
         if diagram_type == DiagramType.PROCESS_FLOW:
             system_prompt += "Return a strictly valid JSON object with a single key 'steps' containing a list of strings representing the consecutive sequence of events. For example: {\"steps\": [\"Step 1\", \"Step 2\", \"Step 3\"]}."
