@@ -30,13 +30,20 @@ echo "=== Deploying $SERVICE_NAME to Cloud Run ==="
 echo "Project:  $PROJECT_ID"
 echo "Region:   $REGION"
 
+# Write a temporary .env for Vite to pick up during Docker build.
+# (--set-build-env-vars sets Cloud Build env vars, not Docker ARGs,
+#  so the Dockerfile ARG stays empty. This .env file is the fix.)
+VITE_ENV_FILE="frontend/.env.production"
+echo "VITE_GEMINI_API_KEY=$VITE_GEMINI_API_KEY" > "$VITE_ENV_FILE"
+echo "VITE_BACKEND_URL=" >> "$VITE_ENV_FILE"
+trap "rm -f $VITE_ENV_FILE" EXIT
+
 gcloud run deploy "$SERVICE_NAME" \
   --source . \
   --project="$PROJECT_ID" \
   --region="$REGION" \
   --allow-unauthenticated \
   --set-env-vars="GOOGLE_API_KEY=$GOOGLE_API_KEY,GOOGLE_CLOUD_PROJECT=$PROJECT_ID,GOOGLE_CLOUD_LOCATION=$REGION" \
-  --set-build-env-vars="VITE_GEMINI_API_KEY=$VITE_GEMINI_API_KEY" \
   --memory=1Gi \
   --timeout=300
 

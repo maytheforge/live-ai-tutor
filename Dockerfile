@@ -4,11 +4,8 @@ WORKDIR /app/frontend
 COPY frontend/package*.json ./
 RUN npm ci
 COPY frontend/ ./
-ARG VITE_GEMINI_API_KEY
-ENV VITE_GEMINI_API_KEY=$VITE_GEMINI_API_KEY
-# In production the frontend is served from the same origin as the backend,
-# so VITE_BACKEND_URL is left empty (relative URLs).
-ENV VITE_BACKEND_URL=""
+# Vite reads VITE_GEMINI_API_KEY and VITE_BACKEND_URL from .env.production
+# (created by deploy.sh before upload)
 RUN npm run build
 
 # Stage 2: Python backend + built frontend
