@@ -16,6 +16,7 @@ from agents.diagram_agent import DiagramAgent, DiagramType
 from agents.review_agent import ReviewAgent
 from agents.reinforcement_agent import ReinforcementAgent
 from orchestrator import ADKOrchestrator
+from tools.mermaid_tools import generate_mermaid_diagram
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -106,8 +107,44 @@ async def interact(request: InteractionRequest):
     
     response["tutor_response"] = adk_result.get("tutor_response", "I'm thinking about that...")
     response["canvas_action"] = adk_result.get("canvas_action", {"action": "noop"})
-    response["mermaid_diagram"] = adk_result.get("mermaid_diagram")  # None if no diagram generated
-    
+
+    # --- Direct Mermaid diagram generation (independent of ADK) ---
+    # Case 1: Explicit diagram request from the voice agent (request_diagram set)
+    # Case 2: Image analyzed — auto-generate a diagram for the detected homework topic
+    mermaid_result = None
+    topic_for_diagram = None
+    diagram_type = "flowchart"
+
+    if request.request_diagram:
+        # request_diagram contains the topic or type hint from the voice call
+        topic_for_diagram = request.request_diagram
+        # Pick diagram type based on the hint
+        if "flow" in request.request_diagram.lower() or "cycle" in request.request_diagram.lower() or "process" in request.request_diagram.lower():
+            diagram_type = "flowchart"
+        elif "sequence" in request.request_diagram.lower() or "step" in request.request_diagram.lower():
+            diagram_type = "sequence"
+        elif "mind" in request.request_diagram.lower():
+            diagram_type = "mindmap"
+    elif response.get("vision_topic") and response["vision_topic"] != "Homework problem":
+        # Use the vision-detected topic to generate a relevant contextual diagram
+        topic_for_diagram = response["vision_topic"]
+        # Try to pick an appropriate type based on the topic
+        topic_lower = topic_for_diagram.lower()
+        if any(w in topic_lower for w in ["cycle", "flow", "process", "phase", "stage", "step"]):
+            diagram_type = "flowchart"
+        elif any(w in topic_lower for w in ["equation", "math", "algebra", "solve", "formula"]):
+            diagram_type = "flowchart"  # step-by-step solving flow
+        else:
+            diagram_type = "flowchart"
+
+    if topic_for_diagram:
+        mermaid_result = generate_mermaid_diagram(
+            topic=topic_for_diagram,
+            diagram_type=diagram_type
+        )
+
+    response["mermaid_diagram"] = mermaid_result  # None if no diagram needed
+
     # 3. Logic to record for review later
     review_agent.record_interaction(response["tutor_response"], request.message or "")
 
