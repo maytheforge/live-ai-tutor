@@ -14,6 +14,8 @@ class VisionAgent:
     def __init__(self):
         api_key = os.getenv("GOOGLE_API_KEY")
         self.client = genai.Client(api_key=api_key)
+        # gemini-1.5-flash has much higher free-tier quotas than 2.0-flash
+        self.model = "gemini-1.5-flash"
         self.last_extraction: Dict[str, Any] = {}
 
     def extract_problem_context(self, image_data: str) -> Dict[str, Any]:
@@ -33,7 +35,7 @@ class VisionAgent:
             )
 
             response = self.client.models.generate_content(
-                model="gemini-2.0-flash",
+                model=self.model,
                 contents=[
                     types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg"),
                     prompt,
@@ -55,6 +57,14 @@ class VisionAgent:
             return extraction
 
         except Exception as e:
+            err_str = str(e)
+            if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
+                print(f"[VisionAgent] Quota exhausted — try again shortly")
+                return {
+                    "text": "I can see you've shared an image, but I'm getting a lot of requests right now. Please describe the problem verbally!",
+                    "topic": "Image shared",
+                    "detected_elements": [],
+                }
             print(f"[VisionAgent] Error analyzing image: {e}")
             return {
                 "text": "A homework problem (image could not be analyzed in detail).",
