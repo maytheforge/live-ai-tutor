@@ -5,33 +5,33 @@ import './HomePage.css';
 const features = [
     {
         icon: '📊',
-        title: 'Mermaid Diagrams',
-        description: 'High-quality AI-generated flowcharts and mindmaps render instantly to visualize complex science and math concepts.',
+        title: 'Visual Diagrams',
+        description: 'AI-generated flowcharts and mindmaps render instantly to visually explain complex science and math concepts.',
     },
     {
         icon: '🎤',
-        title: 'Voice Triage',
-        description: 'Coach Leo speaks first to understand if you need Homework help or want to Learn a new topic, guiding your start.',
+        title: 'Live Voice Tutoring',
+        description: 'Speak and listen in real-time with Coach Leo as he guides you through your learning journey.',
     },
     {
         icon: '📷',
         title: 'Homework Vision',
-        description: 'Point your camera at your homework or upload a photo — the tutor sees it, confirms it, and responds in context.',
+        description: 'Point your camera at your homework or upload a photo — the tutor sees it and identifies the problem instantly.',
     },
     {
-        icon: '🤔',
-        title: 'Socratic Mirror',
-        description: 'Coach Leo never just gives you the answer. It asks guiding questions to help you discover solutions yourself.',
+        icon: '📐',
+        title: 'Shared Whiteboard',
+        description: 'An interactive canvas available for you and Leo to sketch, highlight, and work through problems visually.',
     },
     {
         icon: '🤖',
         title: 'Solution Wrap-ups',
-        description: 'Once you discover the solution, Leo provides a complete visual step-by-step summary in the Diagram tab.',
+        description: 'Once you discover the solution, Leo provides a complete visual step-by-step summary for you to keep.',
     },
     {
         icon: '🧠',
         title: 'True Understanding',
-        description: 'Every interaction is designed to build genuine comprehension, prioritizing your discovery over rote engine answers.',
+        description: 'Focused on building genuine comprehension, prioritizing your discovery over immediate answers.',
     },
 ];
 
@@ -102,8 +102,8 @@ export default function HomePage() {
                         </button>
 
                         <ul className="cta-checklist">
-                            <li><span className="check">✓</span> Socratic Triage (Homework or Learning)</li>
-                            <li><span className="check">✓</span> Mermaid Diagram & Shared Whiteboard</li>
+                            <li><span className="check">✓</span> Live Voice Tutoring</li>
+                            <li><span className="check">✓</span> Visual Diagrams & Shared Whiteboard</li>
                             <li><span className="check">✓</span> Live Solution Wrap-ups</li>
                         </ul>
                     </div>
