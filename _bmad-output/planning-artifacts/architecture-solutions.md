@@ -2,12 +2,12 @@
 stepsCompleted: [step-01-architectural-design]
 inputDocuments: [brainstorming-session-20260309-200920, prd.md]
 workflowType: 'architecture'
-project_name: 'Live Homework Tutor Agent'
+project_name: 'Live AI Tutor Agent'
 user_name: 'Harishkanuri'
 date: '2026-03-09T22:31:41-04:00'
 ---
 
-# Architecture Solution Design - Live Homework Tutor Agent
+# Architecture Solution Design - Live AI Tutor Agent
 
 ## 🏗️ 7. Canvas Interaction Architecture
 

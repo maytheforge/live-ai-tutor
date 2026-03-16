@@ -175,7 +175,7 @@ export default function TutorPage() {
                         <ArrowLeft size={18} />
                     </button>
                     <Sparkles className="icon-gold" />
-                    <h1>Live Homework Tutor</h1>
+                    <h1>Live AI Tutor</h1>
                 </div>
                 <div className="status-indicators">
                     <span className={`status-dot ${isLive ? 'live' : 'offline'}`} />

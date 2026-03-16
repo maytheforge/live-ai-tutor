@@ -8,9 +8,9 @@
 
 set -euo pipefail
 
-PROJECT_ID="live-ai-tutor"
+PROJECT_ID="live-ai-tutor-490321"
 REGION="us-central1"
-SERVICE_NAME="live-homework-tutor"
+SERVICE_NAME="live-ai-tutor"
 
 # Use env vars or fall back to the backend .env file
 if [ -z "${GOOGLE_API_KEY:-}" ] && [ -f backend/.env ]; then

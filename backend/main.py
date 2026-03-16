@@ -47,7 +47,7 @@ async def lifespan(app: FastAPI):
     yield  # App runs here
     # Shutdown cleanup (if needed)
 
-app = FastAPI(title="Live Homework Tutor API", lifespan=lifespan)
+app = FastAPI(title="Live AI Tutor API", lifespan=lifespan)
 
 # CORS: use ALLOWED_ORIGINS env var in production, fallback to permissive for local dev
 allowed_origins = os.getenv("ALLOWED_ORIGINS", "*").split(",")

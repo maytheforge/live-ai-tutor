@@ -14,12 +14,12 @@ documentCounts:
   projectDocsCount: 0
 ---
 
-# Product Requirements Document - Live Homework Tutor Agent
+# Product Requirements Document - Live AI Tutor Agent
 
 **Author:** Harishkanuri
 **Date:** 2026-03-09T20:06:34-04:00
 ## 1. Product Vision
-The **Live Homework Tutor Agent** aims to bridge the gap between static AI answers and genuine educational growth. By leveraging Gemini's real-time multimodal capabilities (Live Voice + Vision), we are building a "Socratic Mirror"—a tutor that doesn't just solve problems but guides students through the cognitive process of discovery. Our vision is to provide every student with a 1:1 elite tutoring experience that is interruptible, visual, and deeply responsive to their individual learning pace.
+The **Live AI Tutor Agent** aims to bridge the gap between static AI answers and genuine educational growth. By leveraging Gemini's real-time multimodal capabilities (Live Voice + Vision), we are building a "Socratic Mirror"—a tutor that doesn't just solve problems but guides students through the cognitive process of discovery. Our vision is to provide every student with a 1:1 elite tutoring experience that is interruptible, visual, and deeply responsive to their individual learning pace.
 
 ## 2. User Personas
 

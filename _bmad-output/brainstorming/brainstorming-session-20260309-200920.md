@@ -1,7 +1,7 @@
 ---
 stepsCompleted: [1]
 inputDocuments: []
-session_topic: 'Live Homework Tutor Agent'
+session_topic: 'Live AI Tutor Agent'
 session_goals: 'Evaluate project idea and generate innovative features'
 selected_approach: ''
 techniques_used: []
@@ -15,7 +15,7 @@ context_file: '_bmad-output/planning-artifacts/prd.md'
 **Date:** 2026-03-09T20:09:20-04:00
 
 ## Session Progress
-- [x] Initialized PRD workflow for Live Homework Tutor Agent
+- [x] Initialized PRD workflow for Live AI Tutor Agent
 - [x] Discovered project documents (Greenfield)
 - [x] Setup PRD document and finalize Step 1
 - [x] Initialized Brainstorming Session
@@ -33,7 +33,7 @@ _The project is a multimodal AI tutor for the Google Gemini Live Agent Hackathon
 
 ### Session Setup
 
-_Fresh session initialized for Harishkanuri. Focusing on the "Live Homework Tutor Agent" concept._
+_Fresh session initialized for Harishkanuri. Focusing on the "Live AI Tutor Agent" concept._
 
 ## Initial Concept Analysis & User Decisions
 

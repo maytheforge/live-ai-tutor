@@ -174,7 +174,7 @@ function App() {
             <header className="app-header">
                 <div className="logo">
                     <Sparkles className="icon-gold" />
-                    <h1>Live Homework Tutor</h1>
+                    <h1>Live AI Tutor</h1>
                 </div>
                 <div className="status-indicators">
                     <span className={`status-dot ${isLive ? 'live' : 'offline'}`}></span>

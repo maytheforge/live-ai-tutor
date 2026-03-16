@@ -121,7 +121,7 @@ The script will:
 ### 3. Set environment variables on the deployed service
 
 ```bash
-gcloud run services update live-homework-tutor \
+gcloud run services update live-ai-tutor \
   --region us-central1 \
   --set-env-vars="GOOGLE_API_KEY=your_key_here"
 ```

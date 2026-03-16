@@ -16,7 +16,7 @@ fi
 echo "Deploying to Google Cloud Run in project $PROJECT_ID..."
 echo "This will containerize the app using buildpacks/Dockerfile and push to Artifact Registry."
 
-gcloud run deploy live-homework-tutor \
+gcloud run deploy live-ai-tutor \
   --source . \
   --project=$PROJECT_ID \
   --region=us-central1 \
