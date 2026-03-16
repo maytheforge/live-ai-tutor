@@ -100,7 +100,7 @@ export default function TutorPage() {
         if (!imageSrc) return;
 
         try {
-            setTutorMessage('Thinking...');
+            setTutorMessage('Analyzing your homework...');
             setLastSnapshot(imageSrc);
             setUploadedImage(null);
 
@@ -114,7 +114,12 @@ export default function TutorPage() {
                 image_data: base64Image,
             });
 
-            if (response.data.tutor_response) setTutorMessage(response.data.tutor_response);
+            // Show the detected topic first, then the Socratic response
+            if (response.data.vision_topic) {
+                setTutorMessage(`I can see: "${response.data.vision_topic}". ${response.data.tutor_response || ''}`.trim());
+            } else if (response.data.tutor_response) {
+                setTutorMessage(response.data.tutor_response);
+            }
             if (response.data.canvas_action) setExternalCanvasActions(response.data.canvas_action);
         } catch (error) {
             console.error('Error interacting with tutor:', error);
@@ -135,7 +140,7 @@ export default function TutorPage() {
 
             setUploadedImage(dataUrl);
             setLastSnapshot(null);
-            setTutorMessage('Looking at your uploaded homework...');
+            setTutorMessage('Analyzing your uploaded homework...');
 
             if (isLive) sendContext(base64Image);
 
@@ -146,7 +151,12 @@ export default function TutorPage() {
                     message: 'Can you help me with this problem?',
                     image_data: base64Image,
                 });
-                if (response.data.tutor_response) setTutorMessage(response.data.tutor_response);
+                // Show the detected topic alongside the Socratic response
+                if (response.data.vision_topic) {
+                    setTutorMessage(`I can see: "${response.data.vision_topic}". ${response.data.tutor_response || ''}`.trim());
+                } else if (response.data.tutor_response) {
+                    setTutorMessage(response.data.tutor_response);
+                }
                 if (response.data.canvas_action) setExternalCanvasActions(response.data.canvas_action);
             } catch (error) {
                 console.error('Error sending uploaded image to tutor:', error);
