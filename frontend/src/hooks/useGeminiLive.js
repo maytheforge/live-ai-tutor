@@ -97,7 +97,7 @@ export function useGeminiLive(apiKey) {
                 // Initial setup message (no systemInstruction — not supported by native audio models)
                 const setupMessage = {
                     setup: {
-                        model: "models/gemini-2.5-flash-native-audio-latest",
+                        model: "models/gemini-2.0-flash-exp",
                         generationConfig: {
                             responseModalities: ["AUDIO"]
                         },
@@ -257,11 +257,21 @@ export function useGeminiLive(apiKey) {
 
     const cleanupAudio = useCallback(() => {
         if (processorRef.current && sourceRef.current) {
-            sourceRef.current.disconnect(processorRef.current);
-            processorRef.current.disconnect();
+            try {
+                sourceRef.current.disconnect(processorRef.current);
+            } catch (e) {
+                console.warn("Could not disconnect source from processor:", e);
+            }
+            try {
+                processorRef.current.disconnect();
+            } catch (e) {
+                console.warn("Could not disconnect processor:", e);
+            }
         }
         if (streamRef.current) {
-            streamRef.current.getTracks().forEach(track => track.stop());
+            streamRef.current.getTracks().forEach(track => {
+                try { track.stop(); } catch (e) { }
+            });
         }
         if (audioContextRef.current) {
             audioContextRef.current.close().catch(console.error);
