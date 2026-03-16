@@ -6,7 +6,7 @@ from google.adk.runners import InMemoryRunner
 from google.genai import types
 
 from tools.canvas_tools import add_text_to_board, clear_board, highlight_area
-from tools.mermaid_tools import generate_mermaid_diagram
+from tools.mermaid_tools import display_mermaid_diagram
 
 SYSTEM_PROMPT = """You are Coach Leo, a Socratic educational tutor — a "Socratic Mirror".
 Your core philosophy: You NEVER directly solve problems or reveal answers. You guide students through the cognitive process of discovery using questions.
@@ -16,11 +16,9 @@ SOCRATIC RULES (follow strictly):
 2. Break the problem into small discoverable steps. Let the student do each step themselves.
 3. If the student gets a step right, affirm it warmly and ask what they should do next.
 4. If the student gets a step wrong, don't correct directly — ask: "Are you sure? What does that tell you about x?"
-5. Only draw a diagram or visual when the student explicitly asks for one OR when a visual would prompt a new guiding question (e.g. "Does this number line help you see where x might be?").
+5. VISUAL EXPLANATIONS: You have a `diagram_agent` that produces Mermaid diagrams. ALWAYS use it to provide a visual breakdown of complex cycles (like the water cycle) or step-by-step math conceptual structures. A visual aid helps the student "see" the problem.
 6. NEVER say "The answer is...", "x = ...", or "The solution is...".
 7. Respond conversationally, warmly, and with encouragement. Keep responses short (2-3 sentences max).
-
-You have access to sub-agents that can draw on the student's board — use them only as discovery aids, not to show the final answer.
 """
 
 
@@ -34,31 +32,32 @@ class ADKOrchestrator:
         # Create Canvas Sub-Agent
         canvas_agent = Agent(
             name="canvas_agent",
-            model="gemini-2.5-flash",
+            model="gemini-1.5-flash-latest",
             tools=[add_text_to_board, clear_board, highlight_area],
             instruction="You are the Canvas Agent. Your job is to draw visual aids that HELP the student think — not reveal answers. Draw diagrams that prompt discovery, like a number line without the answer marked, or steps shown one-by-one with blanks for the student to fill in."
         )
 
-        # Create Diagram Sub-Agent — uses Mermaid DSL for clean, reliable diagram generation
+        # Create Diagram Sub-Agent — uses the model to produce Mermaid DSL
         diagram_agent = Agent(
             name="diagram_agent",
-            model="gemini-2.5-flash",
-            tools=[generate_mermaid_diagram],
+            model="gemini-1.5-flash-latest",
+            tools=[display_mermaid_diagram],
             instruction=(
-                "You are the Diagram Agent. When asked to draw a diagram, call generate_mermaid_diagram "
-                "with the topic and the most suitable diagram_type: "
-                "'flowchart' for processes/cycles (default), "
-                "'sequence' for step-by-step interactions, "
-                "'mindmap' for concept maps, "
-                "'stateDiagram' for state/logic flows. "
-                "Always use the diagram as a discovery aid — show the structure of a concept, not its answer."
+                "You are the Diagram Agent. Your goal is to create a visual Mermaid DSL diagram to help the student. "
+                "Steps:\n"
+                "1. Think of the best diagram type: flowchart, sequence, mindmap, or stateDiagram.\n"
+                "2. Generate the valid Mermaid code.\n"
+                "3. Call display_mermaid_diagram(mermaid_code=..., title=...) with your result.\n\n"
+                "Rules:\n"
+                "- Visualise the STRUCTURE or PROCESS, not the final answer.\n"
+                "- Keep labels short and readable."
             )
         )
 
         # Initialize Top-Level Google ADK Orchestrator Agent
         self.root_agent = Agent(
             name="hw_tutor_orchestrator",
-            model="gemini-2.5-flash",
+            model="gemini-1.5-flash-latest",
             sub_agents=[canvas_agent, diagram_agent],
             instruction=SYSTEM_PROMPT
         )

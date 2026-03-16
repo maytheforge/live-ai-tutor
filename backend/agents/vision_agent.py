@@ -12,10 +12,10 @@ class VisionAgent:
     """
 
     def __init__(self):
-        api_key = os.getenv("GOOGLE_API_KEY")
+        api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
         self.client = genai.Client(api_key=api_key)
-        # gemini-2.0-flash-lite is fast, cheap, and available on the v1beta endpoint
-        self.model = "gemini-2.0-flash-lite"
+        # 1.5-flash is robust for vision tasks across free/paid tiers
+        self.model = "gemini-1.5-flash-latest"
         self.last_extraction: Dict[str, Any] = {}
 
     def extract_problem_context(self, image_data: str) -> Dict[str, Any]:
