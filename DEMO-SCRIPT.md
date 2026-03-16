@@ -37,11 +37,11 @@
 
 **[SCREEN: Click "Start Tutoring Session" on the landing page]**
 
-> "The student clicks to start a session. They get a live voice connection to Coach Leo — our Socratic AI tutor — plus a shared Excalidraw canvas."
+> "The student clicks to start a session. They get a live voice connection to Coach Leo — our Socratic AI tutor — plus a dual-panel workspace featuring a high-quality Mermaid Diagram tab and an Excalidraw whiteboard for annotations."
 
-**[SCREEN: Session page loads — webcam feed, canvas, and mic indicator visible]**
+**[SCREEN: Session page loads — webcam feed, Diagram panel, and mic indicator visible]**
 
-> "This is fully multimodal. Voice in and out via Gemini Live's WebSocket API, camera vision, and an interactive whiteboard — all in real time."
+> "This is fully multimodal. Voice in and out via Gemini Live, camera vision, and an intelligent Diagram tab — all in real time."
 
 ### Showing the Homework (0:55 – 1:25)
 
@@ -65,20 +65,20 @@
 
 **[WAIT for AI to affirm and possibly trigger a canvas drawing]**
 
-> *(If the AI draws on the canvas, point it out):*
-> "Notice how Coach Leo just drew the equation steps on the shared canvas — it's showing the work visually without revealing the final answer. The student still has to do the thinking."
+> *(If the AI generates a diagram, point it out):*
+> "Notice how Coach Leo just generated a Mermaid flowchart in the Diagram tab — it's showing the logic visually without revealing the final answer. The student still has to do the thinking."
 
 ### Canvas in Action (2:10 – 2:50)
 
 **[SCREEN: Point to the Excalidraw canvas showing diagrams/highlights]**
 
-> "The backend orchestrator — built with Google ADK — routes between specialized sub-agents. The Canvas Agent draws visual aids. The Diagram Agent generates equation steps and number lines. And the root Tutor Agent controls the Socratic strategy."
+> "The backend orchestrator built with Google ADK routes between specialized sub-agents. The Diagram Agent generates high-quality Mermaid DSL for conceptual flows and solution summaries, while the Canvas Agent handles dynamic highlights on the whiteboard."
 
 **[ACTION: Say "Can you draw a number line for this?"]**
 
 **[WAIT for diagram to appear on canvas]**
 
-> "Every drawing is a discovery aid — not a spoiler. The AI highlights where to look, not what the answer is."
+> "Every visual is a discovery aid — not a spoiler. For science concepts, diagrams appear upfront to build a framework. For math homework, Coach Leo holds them back until the final 'Aha!' moment — where he provides a complete visual wrap-up of the steps we walked through together."
 
 ---
 
@@ -90,9 +90,9 @@
 >
 > "The React frontend connects to Gemini Live via WebSocket for real-time voice. When the student shows their work, a snapshot goes to our FastAPI backend on Cloud Run."
 >
-> "The Vision Agent analyzes the image with Gemini 1.5 Flash. Then the Google ADK Orchestrator routes between the Tutor Agent — which handles Socratic logic — and sub-agents for Canvas and Diagram generation."
+> "The Vision Agent analyzes the image with Gemini 1.5 Flash. Then the Google ADK Orchestrator routes between the Tutor Agent — which handles Socratic logic — and sub-agents for Mermaid Diagram and Excalidraw Canvas generation."
 >
-> "Tool calls flow back to the frontend and update the Excalidraw board in real time. The student sees drawings appear as Coach Leo speaks."
+> "Tool calls flow back to the frontend, updating the Diagram panel and Whiteboard in real time. The student sees the logic take shape as Coach Leo speaks."
 
 ---
 

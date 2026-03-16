@@ -10,9 +10,10 @@ A real-time, multimodal AI homework tutor powered by Google Gemini Live API and 
 |---|---|
 | 🎤 **Live Voice Tutoring** | Students talk to Coach Leo in real-time using the Gemini Live API (WebSocket-based audio) |
 | 📷 **Homework Vision** | Students hold homework up to their camera — the tutor "sees" it via snapshot analysis |
-| 📐 **Shared Canvas** | An Excalidraw whiteboard where Coach Leo can draw diagrams, equation steps, and number lines |
+| 📊 **Mermaid Diagrams** | High-quality AI-generated flowcharts, sequences, and mindmaps render natively in the **Diagram** tab |
+| 📐 **Shared Whiteboard** | An Excalidraw canvas for student free-hand annotation and manual highlighting |
 | 🤔 **Socratic Method** | The tutor never gives answers directly — it asks guiding questions to promote discovery |
-| 🤖 **Multi-Agent Orchestration** | A Google ADK parent orchestrator delegates to specialized Canvas and Diagram sub-agents |
+| 🤖 **Multi-Agent Orchestration** | A Google ADK parent orchestrator delegates to specialized sub-agents |
 
 ---
 
@@ -22,20 +23,22 @@ A real-time, multimodal AI homework tutor powered by Google Gemini Live API and 
 ┌──────────────────────────────────────────────────────────────┐
 │                     React Frontend (Vite)                      │
 │  Gemini Live API ──► useGeminiLive.js ──► Tool Call Handler   │
-│  Excalidraw Canvas ◄────────────────────────────────────────  │
+│  ┌───────────────────────────┬──────────────────────────────┐  │
+│  │    Mermaid Diagram Tab    │      Excalidraw Whiteboard    │  │
+│  └───────────────────────────┴──────────────────────────────┘  │
 └─────────────────────────────┬────────────────────────────────┘
-                              │ HTTP POST /interact
+                               │ HTTP POST /interact
 ┌─────────────────────────────▼────────────────────────────────┐
 │                  FastAPI Backend (Python)                       │
 │                                                                │
 │  ADKOrchestrator (hw_tutor_orchestrator)                       │
-│    ├── canvas_agent  ──► add_text, clear_board, highlight      │
-│    └── diagram_agent ──► science_flow, math_steps, num_line    │
+│    ├── diagram_agent ──► Generates Mermaid DSL (Solution/Flow)   │
+│    └── canvas_agent  ──► Dynamic highlights and annotation      │
 └──────────────────────────────────────────────────────────────┘
 ```
 
 **Key technologies:**
-- **Frontend:** React + Vite, Excalidraw, Gemini Live WebSocket API
+- **Frontend:** React + Vite, `mermaid.js`, Excalidraw, Gemini Live WebSocket API
 - **Backend:** FastAPI (Python), Google ADK (`google-adk`), `google-genai`
 - **Deployment:** Google Cloud Run + Docker
 
@@ -151,8 +154,8 @@ live-ai-tutor/
 │   ├── orchestrator.py      # Google ADK multi-agent orchestrator
 │   ├── agents/              # Legacy single-agent implementations
 │   ├── tools/
-│   │   ├── canvas_tools.py  # Excalidraw canvas tool functions
-│   │   └── diagram_tools.py # Diagram generation tool functions
+│   │   ├── canvas_tools.py  # Dynamic highlights tool
+│   │   └── mermaid_tools.py # Mermaid diagram tool
 │   ├── Dockerfile
 │   ├── deploy.sh
 │   └── requirements.txt
@@ -183,7 +186,7 @@ Coach Leo follows strict Socratic rules:
 - **Never reveals answers** — always responds with guiding questions
 - **One question at a time** — keeps the student's cognitive load manageable  
 - **Affirms correct steps** — reinforces learning when the student progresses
-- **Diagrams as discovery aids** — only draws visuals when they help the student think, not to show solutions
+- **Mermaid Solution Wrap-up** — provides a final step-by-step visual summary once the logic is discovered
 
 ---
 
