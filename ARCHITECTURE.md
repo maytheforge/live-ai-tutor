@@ -45,7 +45,9 @@ There are **two communication channels** running simultaneously:
 
 **Channel 1 — Voice (frontend-only):** `useGeminiLive.js` opens a WebSocket directly to `wss://generativelanguage.googleapis.com`. Mic audio streams in at 16kHz PCM, Gemini responds with 24kHz PCM audio. This is the live conversation. The frontend also sends camera snapshots over this same WebSocket as image chunks.
 
-**Channel 2 — Vision + Orchestration (frontend → backend):** When a snapshot is taken or an image uploaded, the frontend POSTs to `/interact`. The backend runs it through the VisionAgent, then the ADK orchestrator, and returns Socratic text + canvas drawing commands.
+**Channel 2 — Vision + Orchestration (frontend → backend):** When a snapshot is taken or an image uploaded, the frontend POSTs to `/interact`. The backend runs it through the VisionAgent, then the ADK orchestrator (which routes to `diagram_agent` or `canvas_agent`), and returns Socratic text + diagram/canvas data:
+- **Mermaid diagrams** — DSL string rendered as SVG in `MermaidPanel`
+- **Excalidraw canvas updates** — JSON elements rendered in `CanvasBoard`
 
 ---
 
@@ -67,11 +69,23 @@ There are **two communication channels** running simultaneously:
 - The backend returns an Excalidraw-compatible JSON action, which App.jsx passes to `CanvasBoard` as `externalCanvasActions`
 - Then sends a `toolResponse` back to Gemini so the voice conversation continues
 
+### `frontend/src/components/MermaidPanel.jsx` — Mermaid diagram renderer
+
+- Renders Mermaid DSL diagrams as interactive SVG
+- Uses library: `mermaid@11.13.0`
+- Process:
+  1. Receives Mermaid code string from backend
+  2. Calls `mermaid.render()` → converts DSL to SVG
+  3. Displays as read-only conceptual visualization
+- Status: **Read-only display** (for explaining processes and concepts)
+
 ### `frontend/src/components/CanvasBoard.jsx` — Excalidraw wrapper
 
-- Renders the Excalidraw canvas
+- Renders an interactive, editable Excalidraw canvas
+- Uses library: `@excalidraw/excalidraw@0.18.0`
 - Listens for `externalCanvasActions` prop changes
 - When a canvas action arrives (e.g. `{action: "upsert", elements: [...]}`) it calls `excalidrawAPI.updateScene()` to draw the elements
+- Status: **Fully editable** (for Socratic visual aids, student annotations, highlighting)
 
 ### `frontend/src/pages/HomePage.jsx` — Landing page
 
@@ -100,11 +114,11 @@ The main tutoring interface with webcam + canvas + controls.
 ### `backend/orchestrator.py` — Google ADK multi-agent system
 
 - Creates 3 agents using `google.adk.agents.llm_agent.Agent`:
-  - **`canvas_agent`** (Gemini 2.5 Flash) — tools: `add_text_to_board`, `clear_board`, `highlight_area`
-  - **`diagram_agent`** (Gemini 2.5 Flash) — tools: `draw_science_flow`, `draw_math_equation_steps`, `draw_math_number_line`
+  - **`canvas_agent`** (Gemini 2.5 Flash) — **Excalidraw tools:** `add_text_to_board`, `clear_board`, `highlight_area`
+  - **`diagram_agent`** (Gemini 2.5 Flash) — **Mermaid tools:** `display_mermaid_diagram`
   - **`hw_tutor_orchestrator`** (root, Gemini 2.5 Flash) — has canvas + diagram as `sub_agents`, uses Socratic system prompt
 - Uses `InMemoryRunner` to execute the agent loop
-- `process_interaction()` sends a message, iterates over events, captures the final text response and any tool execution results (canvas actions)
+- `process_interaction()` sends a message, iterates over events, captures the final text response and both diagram + canvas results
 
 ### `backend/agents/tutor_agent.py` — Grade-adaptive persona definitions
 
@@ -121,17 +135,18 @@ The main tutoring interface with webcam + canvas + controls.
 
 ### `backend/tools/canvas_tools.py` — Excalidraw element generators
 
-- `add_text_to_board(text, x, y)` → returns Excalidraw text element JSON
-- `clear_board()` → returns empty elements array
-- `highlight_area(x, y)` → returns yellow rectangle element
+- **Excalidraw JSON format** — returns interactive drawing elements
+- `add_text_to_board(text, x, y)` → text element
+- `clear_board()` → empty canvas
+- `highlight_area(x, y)` → yellow highlight rectangle
+- Used by canvas_agent for Socratic visual aids
 
-### `backend/tools/diagram_tools.py` — Structured diagram generators
+### `backend/tools/mermaid_tools.py` — Mermaid diagram generator
 
-- `draw_science_flow(steps)` → horizontal flowchart with boxes + arrows
-- `draw_math_equation_steps(steps)` → vertical equation solving steps
-- `draw_math_number_line(start, end, highlight_points)` → number line with ticks
-
-All tools return `{action: "upsert", elements: [...], reason: "..."}` — a contract the frontend knows how to render.
+- **Mermaid DSL format** — returns conceptual diagrams
+- `display_mermaid_diagram(mermaid_code: str, title: str)` → Mermaid DSL string
+- Converts to SVG at frontend (MermaidPanel)
+- Used by diagram_agent for flowcharts, sequences, mindmaps
 
 ---
 
@@ -153,19 +168,28 @@ Student says: "Can you draw a number line for this?"
 [App.jsx] POSTs to backend: /interact {request_diagram: "math_number_line"}
         │
         ▼
-[Backend ADK Orchestrator] routes to diagram_agent → calls draw_math_number_line()
+[Backend ADK Orchestrator] routes to diagram_agent → calls display_mermaid_diagram()
         │
         ▼
-[Backend] returns: {canvas_action: {action: "upsert", elements: [line, ticks...]}}
+[Backend] returns: {mermaid_diagram: {mermaid: "graph...", title: "..."}}
         │
         ▼
-[App.jsx] passes canvas_action to CanvasBoard → Excalidraw renders the diagram
+[App.jsx] renders in MermaidPanel → Mermaid DSL converts to SVG
         │
         ▼
 [App.jsx] sends toolResponse back to Gemini Live → voice conversation resumes
 ```
 
-This two-channel design means voice stays low-latency (direct WebSocket) while heavy processing (vision, multi-agent orchestration) happens on the backend without blocking the conversation.
+**Alternative flow** — if the tutor uses **Excalidraw** (for highlighted steps, annotations):
+```
+[Backend ADK Orchestrator] routes to canvas_agent → calls add_text_to_board()
+        │
+        ▼
+[Backend] returns: {canvas_action: {action: "upsert", elements: [text elements...]}}
+        │
+        ▼
+[App.jsx] passes canvas_action to CanvasBoard → Excalidraw renders + allows student interaction
+```
 
 ---
 
@@ -197,8 +221,9 @@ The FastAPI backend serves the React SPA from `static/` via the catch-all `/{pat
 | **Two-channel architecture** (WebSocket + HTTP) | Voice must be real-time (<200ms), but vision/orchestration can tolerate ~1-2s latency |
 | **Gemini native audio model for voice** | Supports bidirectional streaming, interruptions, natural conversation — can't do this with REST |
 | **ADK with sub-agents** (not a single monolithic prompt) | Separation of concerns — tutor logic, canvas commands, and diagram generation are independent skills |
-| **Tool calls bridge voice → canvas** | Gemini decides when a visual would help, triggers `generate_diagram`, backend generates Excalidraw JSON |
+| **Tool calls bridge voice → visuals** | Gemini decides when a visual helps, triggers `generate_diagram`, backend routes to diagram_agent (Mermaid) or canvas_agent (Excalidraw) |
+| **Dual-path diagram system** | Mermaid (conceptual, read-only SVG) for flowcharts + sequences; Excalidraw (interactive JSON) for Socratic visual aids + student annotation |
 | **Socratic persona injected as model turn** | Native audio models don't support `systemInstruction`, so the persona is faked as a prior model response |
 | **VisionAgent on 1.5 Flash (not 2.0)** | Higher free-tier quotas for image analysis |
-| **Excalidraw elements as the data contract** | Canvas tools return raw Excalidraw JSON — no translation layer needed, frontend calls `updateScene()` directly |
+| **Mermaid DSL + Excalidraw JSON contracts** | Diagram_agent returns DSL string (rendered frontend), canvas_agent returns JSON — no translation layer, frontend calls respective render methods directly |
 | **Single container for frontend + backend** | Simplifies deployment — one Cloud Run service, no CORS in production |

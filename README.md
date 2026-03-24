@@ -10,8 +10,8 @@ A real-time, multimodal AI homework tutor powered by Google Gemini Live API and 
 |---|---|
 | 🎤 **Live Voice Tutoring** | Students talk to Coach Leo in real-time using the Gemini Live API (WebSocket-based audio) |
 | 📷 **Homework Vision** | Students hold homework up to their camera — the tutor "sees" it via snapshot analysis |
-| 📊 **Mermaid Diagrams** | High-quality AI-generated flowcharts, sequences, and mindmaps render natively in the **Diagram** tab |
-| 📐 **Shared Whiteboard** | An Excalidraw canvas for student free-hand annotation and manual highlighting |
+| 📊 **Mermaid Diagrams** | AI-generated flowcharts, sequences, and mindmaps (conceptual learning) render in the **Diagram** tab |
+| 📐 **Excalidraw Whiteboard** | Interactive canvas for Socratic visual aids, highlighting, and free-hand student annotation |
 | 🤔 **Socratic Method** | The tutor never gives answers directly — it asks guiding questions to promote discovery |
 | 🤖 **Multi-Agent Orchestration** | A Google ADK parent orchestrator delegates to specialized sub-agents |
 
@@ -24,7 +24,9 @@ A real-time, multimodal AI homework tutor powered by Google Gemini Live API and 
 │                     React Frontend (Vite)                      │
 │  Gemini Live API ──► useGeminiLive.js ──► Tool Call Handler   │
 │  ┌───────────────────────────┬──────────────────────────────┐  │
-│  │    Mermaid Diagram Tab    │      Excalidraw Whiteboard    │  │
+│  │   MermaidPanel (DSL SVG)  │   CanvasBoard (Excalidraw)    │  │
+│  │  - Conceptual diagrams    │  - Interactive whiteboard     │  │
+│  │  - Read-only display      │  - Editable annotations       │  │
 │  └───────────────────────────┴──────────────────────────────┘  │
 └─────────────────────────────┬────────────────────────────────┘
                                │ HTTP POST /interact
@@ -32,14 +34,15 @@ A real-time, multimodal AI homework tutor powered by Google Gemini Live API and 
 │                  FastAPI Backend (Python)                       │
 │                                                                │
 │  ADKOrchestrator (hw_tutor_orchestrator)                       │
-│    ├── diagram_agent ──► Generates Mermaid DSL (Solution/Flow)   │
-│    └── canvas_agent  ──► Dynamic highlights and annotation      │
+│    ├── diagram_agent ──► Mermaid DSL (flowcharts, sequences)   │
+│    └── canvas_agent  ──► Excalidraw JSON (highlights, tools)   │
 └──────────────────────────────────────────────────────────────┘
 ```
 
 **Key technologies:**
-- **Frontend:** React + Vite, `mermaid.js`, Excalidraw, Gemini Live WebSocket API
+- **Frontend:** React + Vite, `mermaid@11.13.0`, `@excalidraw/excalidraw@0.18.0`, Gemini Live WebSocket API
 - **Backend:** FastAPI (Python), Google ADK (`google-adk`), `google-genai`
+- **Diagram Format:** Mermaid DSL (frontend renders → SVG) + Excalidraw JSON
 - **Deployment:** Google Cloud Run + Docker
 
 ---
@@ -154,8 +157,8 @@ live-ai-tutor/
 │   ├── orchestrator.py      # Google ADK multi-agent orchestrator
 │   ├── agents/              # Legacy single-agent implementations
 │   ├── tools/
-│   │   ├── canvas_tools.py  # Dynamic highlights tool
-│   │   └── mermaid_tools.py # Mermaid diagram tool
+│   │   ├── canvas_tools.py  # Excalidraw element generators
+│   │   └── mermaid_tools.py # Mermaid DSL generator
 │   ├── Dockerfile
 │   ├── deploy.sh
 │   └── requirements.txt
